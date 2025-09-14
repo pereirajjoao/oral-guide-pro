@@ -15,11 +15,18 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        // Dental app specific variants
+        hero: "bg-gradient-primary text-primary-foreground hover:shadow-gentle transform hover:scale-105 transition-all duration-300 border-0",
+        calm: "bg-secondary text-secondary-foreground hover:bg-secondary-accent hover:text-white shadow-soft",
+        success: "bg-success text-success-foreground hover:bg-success/90 shadow-soft",
+        gentle: "bg-accent text-accent-foreground hover:bg-accent-warm border border-accent-warm/20",
+        floating: "bg-card text-card-foreground shadow-floating hover:shadow-gentle border border-border/50"
       },
       size: {
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
+        xl: "h-14 rounded-lg px-10 text-base",
         icon: "h-10 w-10",
       },
     },

@@ -8,33 +8,66 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Dental care color palette - soothing and trustworthy */
+    --background: 210 25% 98%;
+    --foreground: 215 25% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 215 25% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 215 25% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Calming blue-green primary */
+    --primary: 195 85% 45%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 195 85% 85%;
+    --primary-dark: 195 85% 35%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Soft green secondary for trust */
+    --secondary: 155 45% 92%;
+    --secondary-foreground: 155 45% 25%;
+    --secondary-accent: 155 65% 45%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted tones for calm interface */
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 15% 55%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Warm accent for highlights */
+    --accent: 25 85% 95%;
+    --accent-foreground: 25 85% 35%;
+    --accent-warm: 25 85% 65%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Gentle warning colors */
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --warning: 35 85% 65%;
+    --warning-foreground: 35 85% 15%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Soft borders and inputs */
+    --border: 210 25% 88%;
+    --input: 210 25% 92%;
+    --ring: 195 85% 45%;
+
+    /* Success and healing green */
+    --success: 155 65% 45%;
+    --success-foreground: 0 0% 100%;
+    --success-light: 155 65% 95%;
+
+    /* Calming gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--accent)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary-accent)) 100%);
+    --gradient-calm: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+
+    /* Soothing shadows */
+    --shadow-soft: 0 4px 20px -4px hsl(var(--primary) / 0.1);
+    --shadow-gentle: 0 8px 30px -8px hsl(var(--primary) / 0.15);
+    --shadow-floating: 0 12px 40px -12px hsl(var(--primary) / 0.2);
+
+    /* Smooth transitions */
+    --transition-gentle: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.2s ease-out;
 
     --radius: 0.5rem;
 
