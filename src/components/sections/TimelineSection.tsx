@@ -6,17 +6,19 @@ import {
   CheckCircle, 
   Clock, 
   Calendar,
-  ArrowRight,
   Zap,
   Target,
   Medal,
   Camera,
   FileText
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAuthDialog } from "@/contexts/AuthDialogContext";
+import { useTratamento } from "@/hooks/useUserTreatment";
 
-const timelineSteps = [
+const defaultTimelineSteps = [
   {
-    id: 1,
+    id: "1",
     title: "Consulta Inicial",
     description: "Avaliação completa e diagnóstico",
     status: "completed",
@@ -25,7 +27,7 @@ const timelineSteps = [
     details: "Exame clínico, radiografias e plano de tratamento"
   },
   {
-    id: 2,
+    id: "2",
     title: "Limpeza Profissional",
     description: "Remoção de tártaro e polimento",
     status: "completed",
@@ -34,7 +36,7 @@ const timelineSteps = [
     details: "Profilaxia completa e orientações de higiene"
   },
   {
-    id: 3,
+    id: "3",
     title: "Tratamento de Cárie",
     description: "Restauração do dente 16",
     status: "current",
@@ -43,7 +45,7 @@ const timelineSteps = [
     details: "Remoção da cárie e restauração em resina"
   },
   {
-    id: 4,
+    id: "4",
     title: "Controle",
     description: "Verificação e polimento final",
     status: "pending",
@@ -54,9 +56,19 @@ const timelineSteps = [
 ];
 
 export const TimelineSection = () => {
-  const completedSteps = timelineSteps.filter(step => step.status === "completed").length;
-  const totalSteps = timelineSteps.length;
-  const progressPercentage = (completedSteps / totalSteps) * 100;
+  const { user } = useAuth();
+  const { openAuthDialog } = useAuthDialog();
+  const { progress, isLoading } = useTratamento();
+
+  const timelineSteps = progress?.historico ?? defaultTimelineSteps;
+  const completedSteps = progress?.completedSteps ?? timelineSteps.filter((s) => s.status === "completed").length;
+  const totalSteps = progress?.totalSteps ?? timelineSteps.length;
+  const progressPercentage = progress?.percentage ?? (completedSteps / totalSteps) * 100;
+  const proximosPassos = progress?.proximosPassos ?? [
+    { text: "Não comer 2h antes", completed: true },
+    { text: "Escovar bem os dentes", completed: true },
+    { text: "Chegar 15min antes", completed: false },
+  ];
 
   return (
     <section className="py-20 bg-gradient-calm">
@@ -79,6 +91,22 @@ export const TimelineSection = () => {
           </p>
         </div>
 
+        {!user && (
+          <Card className="mb-8 p-6 bg-primary-light border-primary/20">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <h4 className="font-semibold text-foreground mb-1">Veja seu progresso personalizado</h4>
+                <p className="text-sm text-muted-foreground">
+                  Entre na sua conta para acompanhar seu histórico de tratamento
+                </p>
+              </div>
+              <Button variant="hero" onClick={openAuthDialog}>
+                Entrar
+              </Button>
+            </div>
+          </Card>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Progress Overview */}
           <div className="lg:col-span-1 space-y-6">
@@ -100,11 +128,15 @@ export const TimelineSection = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Próxima consulta:</span>
-                  <span className="font-medium text-foreground">29/11/2024</span>
+                  <span className="font-medium text-foreground">
+                    {progress?.nextConsultaDate ?? "29/11/2024"}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Duração estimada:</span>
-                  <span className="font-medium text-foreground">60 min</span>
+                  <span className="font-medium text-foreground">
+                    {progress?.nextConsultaDuration ?? "60 min"}
+                  </span>
                 </div>
               </div>
             </Card>
@@ -128,18 +160,16 @@ export const TimelineSection = () => {
             <Card className="p-6 bg-accent border border-accent-warm/20">
               <h4 className="font-bold text-accent-foreground mb-4">Próximos Passos</h4>
               <div className="space-y-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-success" />
-                  <span className="text-accent-foreground">Não comer 2h antes</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-success" />
-                  <span className="text-accent-foreground">Escovar bem os dentes</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-accent-foreground">Chegar 15min antes</span>
-                </div>
+                {proximosPassos.map((step, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    {step.completed ? (
+                      <CheckCircle className="h-4 w-4 text-success" />
+                    ) : (
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className="text-accent-foreground">{step.text}</span>
+                  </div>
+                ))}
               </div>
             </Card>
           </div>
