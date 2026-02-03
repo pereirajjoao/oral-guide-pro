@@ -1,12 +1,26 @@
 import { Button } from "@/components/ui/button";
-import { Heart, Menu, X } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AuthDialog } from "@/components/auth/AuthDialog";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAuthDialog } from "@/contexts/AuthDialogContext";
+import { Heart, Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { open, setOpen: setAuthDialogOpen } = useAuthDialog();
+  const { user, loading, logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
+    <header id="header" className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -44,6 +58,45 @@ export const Header = () => {
             <Button variant="hero" size="sm">
               Agendar Consulta
             </Button>
+            {!loading &&
+              (user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="relative h-10 w-10 rounded-full focus:ring-2 focus:ring-ring"
+                    >
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={user.photoURL ?? undefined} alt={user.displayName ?? ""} />
+                        <AvatarFallback>
+                          {user.displayName?.[0] ?? user.email?.[0] ?? "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64">
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                          {user.displayName ?? "Usuário"}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {user.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => logout()}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sair
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button variant="gentle" size="sm" onClick={() => setAuthDialogOpen(true)}>
+                  Entrar
+                </Button>
+              ))}
           </div>
 
           {/* Mobile Menu Button */}
@@ -80,11 +133,46 @@ export const Header = () => {
                 <Button variant="hero" size="sm">
                   Agendar Consulta
                 </Button>
+                {!loading &&
+                  (user ? (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={user.photoURL ?? undefined} alt={user.displayName ?? ""} />
+                        <AvatarFallback>
+                          {user.displayName?.[0] ?? user.email?.[0] ?? "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {user.displayName ?? "Usuário"}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {user.email}
+                        </p>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => logout()}>
+                        Sair
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="gentle"
+                      size="sm"
+                      onClick={() => {
+                        setAuthDialogOpen(true);
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      Entrar
+                    </Button>
+                  ))}
               </div>
             </nav>
           </div>
         )}
       </div>
+
+      <AuthDialog open={open} onOpenChange={setAuthDialogOpen} />
     </header>
   );
 };

@@ -4,16 +4,20 @@ import { Slider } from "@/components/ui/slider";
 import { 
   Clipboard, 
   Heart, 
-  AlertTriangle, 
   Clock, 
   FileText,
   Camera,
   Mic,
   Shield,
   CheckCircle2,
-  ArrowRight
+  ArrowRight,
+  User
 } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAuthDialog } from "@/contexts/AuthDialogContext";
+import { useSavePreConsulta } from "@/hooks/useUserTreatment";
+import { toast } from "sonner";
 
 const questions = [
   {
@@ -40,8 +44,25 @@ const questions = [
 ];
 
 export const PreConsultationSection = () => {
+  const { user } = useAuth();
+  const { openAuthDialog } = useAuthDialog();
+  const savePreConsulta = useSavePreConsulta();
   const [painLevel, setPainLevel] = useState([3]);
   const [currentQuestion, setCurrentQuestion] = useState(1);
+  const [answers, setAnswers] = useState<Record<string, string | number | boolean>>({});
+
+  const handleSubmit = async () => {
+    if (!user) return;
+    try {
+      await savePreConsulta.mutateAsync({
+        painLevel: painLevel[0],
+        questionAnswers: { ...answers, painLevel: painLevel[0] },
+      });
+      toast.success("Pré-consulta enviada! Seu dentista já foi informado.");
+    } catch {
+      toast.error("Erro ao enviar. Tente novamente.");
+    }
+  };
 
   return (
     <section className="py-20 bg-gradient-calm">
@@ -119,8 +140,21 @@ export const PreConsultationSection = () => {
             </div>
           </div>
 
-          {/* Interactive Form Demo */}
+          {/* Interactive Form */}
           <Card className="p-6 shadow-gentle border border-border/50">
+            {!user ? (
+              <div className="text-center py-8">
+                <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">Entre para continuar</h3>
+                <p className="text-muted-foreground text-sm mb-6">
+                  Faça login para preencher a pré-consulta e ajudar seu dentista
+                </p>
+                <Button variant="hero" onClick={openAuthDialog}>
+                  Entrar
+                </Button>
+              </div>
+            ) : (
+            <>
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-primary">Progresso</span>
@@ -196,10 +230,17 @@ export const PreConsultationSection = () => {
                 <Button 
                   variant="hero" 
                   className="flex-1"
-                  onClick={() => setCurrentQuestion(Math.min(3, currentQuestion + 1))}
+                  onClick={() => {
+                    if (currentQuestion >= 3) {
+                      handleSubmit();
+                    } else {
+                      setCurrentQuestion(Math.min(3, currentQuestion + 1));
+                    }
+                  }}
+                  disabled={savePreConsulta.isPending}
                 >
                   <ArrowRight className="h-4 w-4" />
-                  Próxima
+                  {currentQuestion >= 3 ? "Enviar" : "Próxima"}
                 </Button>
               </div>
 
@@ -209,6 +250,8 @@ export const PreConsultationSection = () => {
                 Suas informações são seguras e confidenciais
               </div>
             </div>
+            </>
+            )}
           </Card>
         </div>
       </div>
