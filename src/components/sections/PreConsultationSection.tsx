@@ -13,7 +13,7 @@ import {
   ArrowRight,
   User
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect  } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthDialog } from "@/contexts/AuthDialogContext";
 import { useSavePreConsulta } from "@/hooks/useUserTreatment";
@@ -47,9 +47,28 @@ export const PreConsultationSection = () => {
   const { user } = useAuth();
   const { openAuthDialog } = useAuthDialog();
   const savePreConsulta = useSavePreConsulta();
+
   const [painLevel, setPainLevel] = useState([3]);
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const [answers, setAnswers] = useState<Record<string, string | number | boolean>>({});
+
+  const totalQuestions = questions.length;
+  const q = questions.find((qq) => qq.id === currentQuestion) ?? questions[0];
+
+  const setAnswer = (key: string, value: string | number | boolean) => {
+    setAnswers((prev) => ({ ...prev, [key]: value }));
+  };
+
+  useEffect(() => {
+    setAnswer("painLevel", painLevel[0]);
+  }, [painLevel[0]]);
+
+  useEffect(() => {
+    const saved = answers.painLevel;
+    if (typeof saved === "number") {
+      setPainLevel([saved]);
+    }
+  }, [currentQuestion]);
 
   const handleSubmit = async () => {
     if (!user) return;
@@ -63,6 +82,32 @@ export const PreConsultationSection = () => {
       toast.error("Erro ao enviar. Tente novamente.");
     }
   };
+
+  const handleNextOrSubmit = async () => {
+    if (!user) {
+      openAuthDialog();
+      return;
+    }
+
+    if (currentQuestion < totalQuestions) {
+      setCurrentQuestion((prev) => prev + 1);
+      return;
+    }
+
+    await handleSubmit();
+  };
+
+  const handleSkip = () => {
+    if (currentQuestion < totalQuestions) setCurrentQuestion((prev) => prev + 1);
+  };
+
+  const handleBack = () => {
+    setCurrentQuestion((prev) => Math.max(1, prev - 1));
+  };
+  
+
+
+  
 
   return (
     <section className="py-20 bg-gradient-calm">
@@ -171,40 +216,65 @@ export const PreConsultationSection = () => {
             <div className="space-y-6">
               {/* Current Question */}
               <div className="text-center">
-                <h3 className="text-xl font-bold text-foreground mb-2">
-                  Como você se sente hoje?
-                </h3>
-                <p className="text-muted-foreground text-sm mb-6">
-                  Nos ajude a entender seu nível de desconforto
-                </p>
+              <h3 className="text-xl font-bold text-foreground mb-2">{q.title}</h3>
+              <p className="text-muted-foreground text-sm mb-6">{q.description}</p>
               </div>
 
-              {/* Pain Scale */}
-              <div className="space-y-4">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-2">{painLevel[0]}/10</div>
-                  <div className="text-sm text-muted-foreground">
-                    {painLevel[0] <= 3 ? "Sem dor ou desconforto leve" :
-                     painLevel[0] <= 6 ? "Desconforto moderado" :
-                     "Dor intensa"}
+              {q.type === "pain-scale" && (
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-primary mb-2">{painLevel[0]}/10</div>
+                    <div className="text-sm text-muted-foreground">
+                      {painLevel[0] <= 3 ? "Sem dor ou desconforto leve" :
+                      painLevel[0] <= 6 ? "Desconforto moderado" :
+                      "Dor intensa"}
+                    </div>
+                  </div>
+
+                  <Slider
+                    value={painLevel}
+                    onValueChange={(v) => {
+                      setPainLevel(v);
+                      setAnswer("painLevel", v[0]);
+                    }}
+                    max={10}
+                    min={0}
+                    step={1}
+                    className="w-full"
+                  />
+
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>😊 Sem dor</span>
+                    <span>😐 Moderada</span>
+                    <span>😣 Intensa</span>
                   </div>
                 </div>
-                
-                <Slider
-                  value={painLevel}
-                  onValueChange={setPainLevel}
-                  max={10}
-                  min={0}
-                  step={1}
-                  className="w-full"
-                />
-                
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>😊 Sem dor</span>
-                  <span>😐 Moderada</span>
-                  <span>😣 Intensa</span>
+              )}
+
+              {q.type === "duration" && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Tempo do problema</label>
+                  <input
+                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                    placeholder="Ex: 2 semanas, 3 meses"
+                    value={(answers.duration as string) ?? ""}
+                    onChange={(e) => setAnswer("duration", e.target.value)}
+                  />
                 </div>
-              </div>
+              )}
+
+              {q.type === "allergies" && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Alergias ou fobias</label>
+                  <textarea
+                    className="min-h-[96px] w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                    placeholder="Ex: alergia a algum remédio, medo de agulha"
+                    value={(answers.allergies as string) ?? ""}
+                    onChange={(e) => setAnswer("allergies", e.target.value)}
+                  />
+                </div>
+              )}
+
 
               {/* Additional Input Options */}
               <div className="grid grid-cols-3 gap-3">
@@ -224,25 +294,31 @@ export const PreConsultationSection = () => {
 
               {/* Navigation */}
               <div className="flex gap-3">
-                <Button variant="outline" className="flex-1">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleBack}
+                  disabled={currentQuestion === 1}
+                >
+                  Voltar
+                </Button>
+
+                <Button variant="outline" className="flex-1" onClick={handleSkip}>
                   Pular Pergunta
                 </Button>
-                <Button 
-                  variant="hero" 
+
+                <Button
+                  variant="hero"
                   className="flex-1"
-                  onClick={() => {
-                    if (currentQuestion >= 3) {
-                      handleSubmit();
-                    } else {
-                      setCurrentQuestion(Math.min(3, currentQuestion + 1));
-                    }
-                  }}
+                  onClick={handleNextOrSubmit}
                   disabled={savePreConsulta.isPending}
                 >
                   <ArrowRight className="h-4 w-4" />
-                  {currentQuestion >= 3 ? "Enviar" : "Próxima"}
+                  {currentQuestion >= totalQuestions ? "Enviar" : "Próxima"}
                 </Button>
               </div>
+
+
 
               {/* Trust Badge */}
               <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-4 border-t border-border/50">

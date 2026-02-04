@@ -46,8 +46,8 @@ export const CTASection = () => {
                     <Calendar className="h-5 w-5 group-hover:animate-gentle-bounce" />
                     Agendar Primeira Consulta
                   </Button>
-                  <Button variant="outline" size="xl" className="border-white/30 text-primary-foreground hover:bg-white/10">
-                    <Heart className="h-5 w-5" />
+                  <Button variant="floating" size="xl" className="group bg-white text-primary hover:bg-white/90">
+                    <Heart className="h-5 w-5 group-hover:animate-gentle-bounce" />
                     Conhecer o App
                   </Button>
                 </div>
